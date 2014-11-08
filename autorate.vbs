@@ -1,7 +1,7 @@
 ' ====================
 ' AutoRating
 ' ====================
-' Version 1.0.0.2 - September 2014
+' Version 1.0.0.1 - September 2014
 ' Copyright © Sven Wilkens 2014
 ' https://plus.google.com/u/0/+SvenWilkens
 
@@ -91,6 +91,8 @@ Set objFile = objFSO.GetFile(strPath)
 strFolder = objFSO.GetParentFolderName(objFile) 
 Set ObjFSO = CreateObject("Scripting.FileSystemObject")
 Set objLog = objFSO.CreateTextFile(strFolder & "\autorate.log")
+
+'Init
 Set objApp = CreateObject("iTunes.Application")
 Set objLibrary = objApp.LibraryPlaylist
 
@@ -320,7 +322,7 @@ if sortedFrequencyList.count() > 0 and sortedCountList.count() > 0 then
 				combinedFrequency = (combinedCount / DateDiff("s",theDateAdded,theNow))
 			end if
 			
-			'############################
+			'####### darrating Method ########
 			lastPlayed = objTrack.PlayedDate
 			lastSkipped = objTrack.SkippedDate
 			pc = playCount

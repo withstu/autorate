@@ -1,7 +1,7 @@
 ' ====================
 ' AutoRating
 ' ====================
-' Version 1.0.0.1 - September 2014
+' Version 1.0.0.2 - September 2014
 ' Copyright © Sven Wilkens 2014
 ' https://plus.google.com/u/0/+SvenWilkens
 
@@ -30,6 +30,7 @@
 ' ChangeLog 
 ' =========
 ' Version 1.0.0.1 - Initial version
+' Version 1.0.0.2 - Added darrating
 
 Dim objApp
 Dim objLibrary

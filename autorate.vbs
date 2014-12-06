@@ -1,7 +1,7 @@
 ' ====================
 ' AutoRating
 ' ====================
-' Version 2.0.0.1 - September 2014
+' Version 2.0.0.2 - September 2014
 ' Copyright © Sven Wilkens 2014
 ' https://plus.google.com/u/0/+SvenWilkens
 
@@ -32,6 +32,7 @@
 ' Version 1.0.0.1 - Initial version
 ' Version 1.0.0.2 - Added darrating
 ' Version 2.0.0.1 - new algorithm
+' Version 2.0.0.2 - Bugfix
 
 '#########Variables#########
 'General
@@ -329,7 +330,7 @@ if sortedScoreList.count() > 0 then
 	else
 		binIncrement = 1
 	end if
-
+	
 	Wscript.Stdout.Write "Assign Rating: ["
 	WScript.Stdout.Write numTracksToRate
 	WScript.Stdout.Write "/"
@@ -348,13 +349,12 @@ if sortedScoreList.count() > 0 then
 			elseif useHalfStarForItemsWithMoreSkipsThanPlays and (playCount < skipCount) then
 				theRating = 10
 			else
-				'Frequency method
+				'Score method
 				bin = maxBin
-				while score < binLimitScore(bin-1) and bin > minBin
+				while score < binLimitScore(bin-1) and bin >= minBin
 					bin = bin - binIncrement
 				wend
 				theRating = bin * 10.0
-			
 				'Factor in previous rating memory
 				if ratingMemory > 0.0 then
 					theRating = ((theOldRating) * ratingMemory) + (theRating * (1.0 - ratingMemory))
@@ -366,6 +366,9 @@ if sortedScoreList.count() > 0 then
 				theRating = Round(theRating / 20) * 20
 			else
 				theRating = Round(theRating / 10) * 10
+			end if
+			if theRating = 0 then 
+				theRating = 1
 			end if
 
 			'Save to track
@@ -383,6 +386,9 @@ if sortedScoreList.count() > 0 then
 			if (theOldRating <> theRating) And NOT simulate then
 				objTrack.Rating = theRating
 				updateNeeded = true
+				if createPlaylist then
+					playlist.AddTrack(objTrack)
+				end if
 				'rating set successfully	
 			end if
 			
@@ -392,9 +398,7 @@ if sortedScoreList.count() > 0 then
 				if backupComments then
 					objTrack.Comment = commentValue
 				end if
-				if createPlaylist then
-					playlist.AddTrack(objTrack)
-				end if
+
 			end if
 			
 			'Log if changed

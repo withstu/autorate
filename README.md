@@ -17,3 +17,8 @@ Create a smart playlist with the name "MusicOnly", which only contains music.
 Double click autorate.cmd
 
 You can also configure the script to run every day/week when you use the windows task scheduler.
+
+If you want to use half-star rating you have to activate it first:
+- Make sure you are closed out of the iTunes application.
+- Hold the Windows Key and press “R” to bring up the Run dialog box.
+- Type “C:\Program Files\iTunes\iTunes.exe” /setPrefInt allow-half-stars 1 then press “Enter“. If that doesn’t work, try “C:\Program Files (x86)\iTunes\iTunes.exe” /setPrefInt allow-half-stars 1 then press “Enter“.

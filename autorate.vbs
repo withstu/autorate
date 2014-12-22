@@ -454,6 +454,6 @@ if sortedScoreList.count() > 0 then
 	WScript.Echo "Done!"
 	objShell.run "notepad.exe " & strFolder & "\autorate.log"
 else
-	WScript.Echo "Script aborded because no tracks are played or all songs have a higher/equal SkipCount than PlayCount."
-	objLog.WriteLine "Script aborded because no tracks are played or all songs have a higher/equal SkipCount than PlayCount."
+	WScript.Echo "Script aborded because no tracks are available."
+	objLog.WriteLine "Script aborded because no tracks are available."
 end if

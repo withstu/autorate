@@ -1,7 +1,7 @@
 autorate (Windows)
 ==================
 
-Windows version of the program autorate (https://code.google.com/p/autorate/).
+Windows version of the program autorate (https://code.google.com/p/autorate/) with an improved algorithm.
 
 iTunes rating made easy: Automated track rating from play statistics
 

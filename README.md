@@ -11,7 +11,8 @@ Tracks you listen to more will have a higher rating; tracks you neglect will hav
 
 This is particularly useful for automatically creating playlists, or transferring only your favourite tracks onto your iPod.
 
---Install instruction--
+Install instruction
+==================
 Create a smart playlist with the name "MusicOnly", which only contains music.
 Double click autorate.cmd
 

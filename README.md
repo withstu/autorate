@@ -10,3 +10,9 @@ This application automatically sets the rating for all tracks in your iTunes lib
 Tracks you listen to more will have a higher rating; tracks you neglect will have a lower rating.
 
 This is particularly useful for automatically creating playlists, or transferring only your favourite tracks onto your iPod.
+
+--Install instruction--
+Create a smart playlist with the name "MusicOnly", which only contains music.
+Double click autorate.cmd
+
+You can also configure the script to run every day/week when you use the windows task scheduler.

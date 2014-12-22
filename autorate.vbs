@@ -38,7 +38,7 @@
 'General
 Dim objApp,objLibrary,colTracks
 'Counter
-Dim theTrackCount,numAnalysed,updated
+Dim theTrackCount,numAnalysed,updated,up,down,equal
 'Track
 Dim playCount,skipCount,trackLength,theDateAdded,theOldRating,theRating
 'Calculation
@@ -194,6 +194,9 @@ set sortedCountList = CreateObject("System.Collections.ArrayList")
 set sortedScoreList = CreateObject("System.Collections.ArrayList")
 theTrackCount = 0
 numTracksToRate = colTracks.count
+up = 0
+down = 0
+equal = 0
 
 '#########Restore from comments#########
 updated = 0
@@ -420,10 +423,13 @@ if sortedScoreList.count() > 0 then
 				objLog.WriteLine
 				if theRating > theOldRating then 
 					objLog.WriteLine chr(9) & chr(9) & chr(94) & " Rating goes up!"
+					up = up + 1
 				elseif theRating < theOldRating then
 					objLog.WriteLine chr(9) & chr(9) & chr(118) & " Rating goes down!"
+					down = down + 1
 				else
 					objLog.WriteLine chr(9) & chr(9) & chr(61) & " Rating keeps equal!"
+					equal = equal + 1
 				end if
 				objLog.WriteLine
 			end if
@@ -440,6 +446,9 @@ if sortedScoreList.count() > 0 then
 	objLog.WriteLine
 	objLog.WriteLine "#"
 	objLog.WriteLine "# " & updated & " File ratings updated."
+	objLog.WriteLine "# " & up & " File ratings goes up."
+	objLog.WriteLine "# " & down & " File ratings goes down."
+	objLog.WriteLine "# " & equal & " File ratings keeps equal."
 	objLog.WriteLine "#"
 	objLog.WriteLine
 	WScript.Echo "Done!"

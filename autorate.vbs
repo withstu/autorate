@@ -1,7 +1,7 @@
 ' ====================
 ' AutoRating
 ' ====================
-' Version 2.0.0.3 - September 2014
+' Version 2.0.0.2 - September 2014
 ' Copyright © Sven Wilkens 2014
 ' https://plus.google.com/u/0/+SvenWilkens
 
@@ -33,7 +33,6 @@
 ' Version 1.0.0.2 - Added darrating
 ' Version 2.0.0.1 - new algorithm
 ' Version 2.0.0.2 - Bugfix
-' Version 2.0.0.3 - improved algorithm
 
 '#########Variables#########
 'General
@@ -306,9 +305,9 @@ if sortedScoreList.count() > 0 then
 	Next
 	
 	objLog.WriteLine "Rating | Score Border"
-	objLog.WriteLine "---------------------"
+	objLog.WriteLine "-------|-------------"
 	Wscript.Echo "Rating | Score Border"
-	Wscript.Echo "---------------------"
+	Wscript.Echo "-------|-------------"
 	Dim ratingBorder
 	ratingBorder = 0.0
 	For Each scoreLimit in binLimitScore

@@ -1,7 +1,7 @@
 ' ====================
 ' AutoRating
 ' ====================
-' Version 2.0.0.2 - September 2014
+' Version 2.0.0.3 - September 2014
 ' Copyright © Sven Wilkens 2014
 ' https://plus.google.com/u/0/+SvenWilkens
 
@@ -33,6 +33,7 @@
 ' Version 1.0.0.2 - Added darrating
 ' Version 2.0.0.1 - new algorithm
 ' Version 2.0.0.2 - Bugfix
+' Version 2.0.0.3 - improved algorithm
 
 '#########Variables#########
 'General
@@ -74,8 +75,8 @@ set colTracks = sourcePlaylist.Tracks 'use single playlist
 '###############################
 '#########Configuration#########
 '###############################
-backupComments = true 'default:true
 restoreComments = true 'default:true
+backupComments = true 'default:true
 simulate = false 'default:false
 wholeStarRatings = false 'default:false
 rateUnratedTracksOnly = false 'default:false
@@ -167,8 +168,9 @@ Function getScore(objTrack)
 	'Public Const Big_Berny_Formula_4 = "(10000000 * (7+Played-(Skip*0.98^(SongLength/60))^1.7)^3 / (10+DaysSinceFirstPlayed)^0.5) / (1+DaysSinceLastPlayed/365)"
 	'Public Const Big_Berny_Formula_5 = "7+OptPlayed-(Skip*0.98^(SongLength/60))"
 	'Public Const BerniPi_Formula_1 = "(500000000000+10000000000*(Played*0.999^((10+DaysSinceLastPlayed)/(Played/3+1))-Skip^1.7))/((10+DaysSinceFirstPlayed)/(Played^2+1))"
+	'score = Int((10000000 * (7 + playedTime + (daysSinceLastSkipped / 365)^1.2 -(skipCount*0.98^(otrackLength/60))^1.7)^3 / (10 + daysSinceImported)^0.5) / ((daysSinceLastPlayed / 365) + 1))
 	
-	score = Int((10000000 * (7 + playedTime + (daysSinceLastSkipped / 365)^1.2 -(skipCount*0.98^(trackLength/60))^1.7)^3 / (10 + daysSinceImported)^0.5) / ((daysSinceLastPlayed / 365) + 1))
+	score = Int((10000000 * (7 + playedTime + (daysSinceLastSkipped*0.5^(otrackLength/60))^1.2 -(skipCount*0.98^(otrackLength/60))^3)^3 / (10 + daysSinceImported)^0.5) / ((daysSinceLastPlayed / 365) + 1))
 	
 	If score < 0 Then
         score = 0.0
@@ -301,6 +303,18 @@ if sortedScoreList.count() > 0 then
 			binLimitIndex = numAnalysed
 		end if
 		binLimitScore.Add sortedScoreList(binLimitIndex-1)
+	Next
+	
+	objLog.WriteLine "Rating | Score Border"
+	objLog.WriteLine "---------------------"
+	Wscript.Echo "Rating | Score Border"
+	Wscript.Echo "---------------------"
+	Dim ratingBorder
+	ratingBorder = 0.0
+	For Each scoreLimit in binLimitScore
+		objLog.WriteLine "   " & FormatNumber(ratingBorder,1) & " | " & scoreLimit
+		Wscript.Echo "   " & FormatNumber(ratingBorder,1) & " | < " & scoreLimit
+		ratingBorder = ratingBorder + 0.5
 	Next
 
 	'Left analysis loop

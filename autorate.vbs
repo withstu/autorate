@@ -1,8 +1,8 @@
 ' ====================
 ' AutoRating
 ' ====================
-' Version 2.0.0.2 - September 2014
-' Copyright © Sven Wilkens 2014
+' Version 2.0.0.3 - January 2015
+' Copyright © Sven Wilkens 2015
 ' https://plus.google.com/u/0/+SvenWilkens
 
 ' =======
@@ -33,6 +33,7 @@
 ' Version 1.0.0.2 - Added darrating
 ' Version 2.0.0.1 - new algorithm
 ' Version 2.0.0.2 - Bugfix
+' Version 2.0.0.3 - Duration Effect Option
 
 '#########Variables#########
 'General
@@ -46,7 +47,7 @@ Dim binLimits,binLimitIndex,minBin,maxBin,binIncrement,bin,minRatingPercent,maxR
 'Comment
 Dim commentDivider,commentRating,commentPlayCount,commentSkipCount,commentValue,commentDateAdded,commentPlayedDate,commentSkippedDate
 'Configuration
-Dim minRating,maxRating,rateUnratedTracksOnly,ratingMemory,useHalfStarForItemsWithMoreSkipsThanPlays,wholeStarRatings,restoreNeeded,updateNeeded,backupComments,createPlaylist,playlistName,simulate
+Dim minRating,maxRating,rateUnratedTracksOnly,ratingMemory,useHalfStarForItemsWithMoreSkipsThanPlays,wholeStarRatings,restoreNeeded,updateNeeded,backupComments,createPlaylist,playlistName,simulate,durationEffect
 
 '#########Logfile#########
 Dim strPath,strFolder
@@ -80,6 +81,7 @@ simulate = false 'default:false
 wholeStarRatings = false 'default:false
 rateUnratedTracksOnly = false 'default:false
 useHalfStarForItemsWithMoreSkipsThanPlays = false 'default:false
+durationEffect = "megaweak" 'default:default;options: full,strong,moderate,default,weak,veryweak,extremelyweak,superweak,megaweak,ignore
 'Playlist
 createPlaylist = true 'default:true
 playlistName = "LastAutoRated"
@@ -135,6 +137,96 @@ Sub GetCommentValues(C)
 	end if
 End Sub
 
+'Full Duration Effect
+Function getDurationFull(trackLength)
+	getDurationFull = trackLength
+End Function
+
+'Strong Duration Effect
+Function getDurationStrong(trackLength)
+	if trackLength > 3599 then 
+		durationTmp = Round((6000*trackLength)/3600)
+	else
+		durationTmp = 6000
+	end if
+	getDurationStrong = Round((trackLength+360)/3) + Round((trackLength*trackLength)/durationTmp)
+End Function
+
+'Moderate Duration Effect
+Function getDurationModerate(trackLength)
+	if trackLength > 3599 then 
+		durationTmp = Round((10000*trackLength)/3600)
+	else
+		durationTmp = 10000
+	end if
+	getDurationModerate = Round((trackLength+360)/3) + Round((trackLength*trackLength)/durationTmp)
+End Function
+
+'Default Duration Effect
+Function getDurationDefault(trackLength)
+	if trackLength > 3599 then 
+		durationTmp = Round((9000*trackLength)/3600)
+	else
+		durationTmp = 9000
+	end if
+	getDurationDefault = Round((trackLength+540)/4) + Round((trackLength*trackLength)/durationTmp)
+End Function	
+
+'Weak Duration Effect
+Function getDurationWeak(trackLength)
+	if trackLength > 3599 then 
+		durationTmp = Round((10000*trackLength)/3600)
+	else
+		durationTmp = 10000
+	end if
+	getDurationWeak = Round((trackLength+720)/5) + Round((trackLength*trackLength)/durationTmp)
+End Function
+
+'Very Weak Duration Effect
+Function getDurationVeryWeak(trackLength)
+	if trackLength > 3599 then 
+		durationTmp = Round((20000*trackLength)/3600)
+	else
+		durationTmp = 20000
+	end if
+	getDurationVeryWeak = Round((trackLength+720)/5) + Round((trackLength*trackLength)/durationTmp)
+End Function
+
+'Extremely Weak Duration Effect
+Function getDurationExtremelyWeak(trackLength)
+	if trackLength > 3599 then 
+		durationTmp = Round((20000*trackLength)/3600)
+	else
+		durationTmp = 20000
+	end if
+	getDurationExtremelyWeak = Round((trackLength+900)/6) + Round((trackLength*trackLength)/durationTmp)
+End Function
+
+'Super Weak Duration Effect
+Function getDurationSuperWeak(trackLength)
+	if trackLength > 3599 then 
+		durationTmp = Round((20000*trackLength)/3600)
+	else
+		durationTmp = 20000
+	end if
+	getDurationSuperWeak = Round((trackLength+1080)/7) + Round((trackLength*trackLength)/durationTmp)
+End Function
+
+'Mega Weak Duration Effect
+Function getDurationMegaWeak(trackLength)
+	if trackLength > 3599 then 
+		durationTmp = Round((20000*trackLength)/3600)
+	else
+		durationTmp = 20000
+	end if
+	getDurationMegaWeak = Round((trackLength+1260)/8) + Round((trackLength*trackLength)/durationTmp)
+End Function
+
+'Full Duration Effect
+Function getDurationIgnore(trackLength)
+	getDurationIgnore = 180
+End Function
+
 'Calculate Score
 Function getScore(objTrack)
 	Dim daysSinceImported,daysSinceLastPlayed,daysSinceLastSkipped,oTrackLength,score,playedTime,lastPlayed,lastSkipped
@@ -154,12 +246,29 @@ Function getScore(objTrack)
 	daysSinceImported = DateDiff("d",objTrack.DateAdded,theNow) + 1 'tracks added today???
 	
 	'Duration optimizer: boost short tracks
-	if trackLength > 3599 then 
-		durationTmp = Round((6000*trackLength)/3600)
-	else
-		durationTmp = 6000
-	end if
-	oTrackLength = Round((trackLength+360)/3) + Round((trackLength*trackLength)/durationTmp)
+	'options: full,strong,moderate,default,weak,veryweak,extremelyweak,superweak,megaweak,ignore
+	Select Case durationEffect
+	Case "full"
+		oTrackLength = getDurationFull(trackLength)
+	Case "strong"
+		oTrackLength = getDurationStrong(trackLength)
+	Case "moderate"
+		oTrackLength = getDurationModerate(trackLength)
+	Case "weak"
+		oTrackLength = getDurationWeak(trackLength)
+	Case "veryweak"
+		oTrackLength = getDurationVeryWeak(trackLength)
+	Case "extremelyweak"
+		oTrackLength = getDurationExtremelyWeak(trackLength)
+	Case "superweak"
+		oTrackLength = getDurationSuperWeak(trackLength)
+	Case "megaweak"
+		oTrackLength = getDurationMegaWeak(trackLength)
+	Case "ignore"
+		oTrackLength = getDurationIgnore(trackLength)
+	Case Else
+		oTrackLength = getDurationDefault(trackLength)
+	End Select
 	playedTime = playCount * oTrackLength
 	
 	'Public Const Big_Berny_Formula_1 = "(10000000 * (7+OptPlayed-(Skip*0.98^(SongLength/60))^1.7)^3 / (10+DaysSinceFirstPlayed)^0.5) / (1+DaysSinceLastPlayed/365)"

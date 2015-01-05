@@ -1,7 +1,7 @@
 ' ====================
 ' AutoRating
 ' ====================
-' Version 2.0.0.3 - January 2015
+' Version 2.0.0.4 - January 2015
 ' Copyright © Sven Wilkens 2015
 ' https://plus.google.com/u/0/+SvenWilkens
 
@@ -34,6 +34,7 @@
 ' Version 2.0.0.1 - new algorithm
 ' Version 2.0.0.2 - Bugfix
 ' Version 2.0.0.3 - Duration Effect Option
+' Version 2.0.0.4 - alrogrithm fix
 
 '#########Variables#########
 'General
@@ -81,7 +82,7 @@ simulate = false 'default:false
 wholeStarRatings = false 'default:false
 rateUnratedTracksOnly = false 'default:false
 useHalfStarForItemsWithMoreSkipsThanPlays = false 'default:false
-durationEffect = "megaweak" 'default:default;options: full,strong,moderate,default,weak,veryweak,extremelyweak,superweak,megaweak,ignore
+durationEffect = "megaweak" 'default:default;options: full,strong,moderate,default,weak,veryweak,extremelyweak,superweak,megaweak,supermegaweak,ignore
 'Playlist
 createPlaylist = true 'default:true
 playlistName = "LastAutoRated"
@@ -222,6 +223,16 @@ Function getDurationMegaWeak(trackLength)
 	getDurationMegaWeak = Round((trackLength+1260)/8) + Round((trackLength*trackLength)/durationTmp)
 End Function
 
+'Super Mega Weak Duration Effect
+Function getDurationSuperMegaWeak(trackLength)
+	if trackLength > 3599 then 
+		durationTmp = Round((20000*trackLength)/3600)
+	else
+		durationTmp = 20000
+	end if
+	getDurationSuperMegaWeak = Round((trackLength+3564)/18) + Round((trackLength*trackLength)/durationTmp)
+End Function
+
 'Full Duration Effect
 Function getDurationIgnore(trackLength)
 	getDurationIgnore = 180
@@ -235,7 +246,7 @@ Function getScore(objTrack)
 	trackLength = objTrack.Finish - objTrack.Start '1 '(the finish of theTrack) - (the start of theTrack)
 	lastPlayed = objTrack.PlayedDate
 	if lastPlayed = 0 then 
-		lastPlayed = theNow
+		lastPlayed = objTrack.DateAdded
 	end if
 	lastSkipped = objTrack.SkippedDate
 	if lastSkipped = 0 then 
@@ -243,10 +254,9 @@ Function getScore(objTrack)
 	end if
 	daysSinceLastPlayed = DateDiff("d",lastPlayed,theNow)
 	daysSinceLastSkipped = DateDiff("d",lastSkipped,theNow)
-	daysSinceImported = DateDiff("d",objTrack.DateAdded,theNow) + 1 'tracks added today???
-	
+	daysSinceImported = DateDiff("d",objTrack.DateAdded,theNow)
 	'Duration optimizer: boost short tracks
-	'options: full,strong,moderate,default,weak,veryweak,extremelyweak,superweak,megaweak,ignore
+	'options: full,strong,moderate,default,weak,veryweak,extremelyweak,superweak,megaweak,supermegaweak,ignore
 	Select Case durationEffect
 	Case "full"
 		oTrackLength = getDurationFull(trackLength)
@@ -264,13 +274,15 @@ Function getScore(objTrack)
 		oTrackLength = getDurationSuperWeak(trackLength)
 	Case "megaweak"
 		oTrackLength = getDurationMegaWeak(trackLength)
+	Case "supermegaweak"
+		oTrackLength = getDurationSuperMegaWeak(trackLength)
 	Case "ignore"
 		oTrackLength = getDurationIgnore(trackLength)
 	Case Else
 		oTrackLength = getDurationDefault(trackLength)
 	End Select
 	playedTime = playCount * oTrackLength
-	
+
 	'Public Const Big_Berny_Formula_1 = "(10000000 * (7+OptPlayed-(Skip*0.98^(SongLength/60))^1.7)^3 / (10+DaysSinceFirstPlayed)^0.5) / (1+DaysSinceLastPlayed/365)"
 	'Public Const Big_Berny_Formula_2 = "(10000000 * (7+OptPlayed-(Skip*0.98^(SongLength/60))^1.7)^3 / (10+DaysSinceFirstPlayed)^0.3) / (1+DaysSinceLastPlayed/730)"
 	'Public Const Big_Berny_Formula_4 = "(10000000 * (7+Played-(Skip*0.98^(SongLength/60))^1.7)^3 / (10+DaysSinceFirstPlayed)^0.5) / (1+DaysSinceLastPlayed/365)"
@@ -278,7 +290,7 @@ Function getScore(objTrack)
 	'Public Const BerniPi_Formula_1 = "(500000000000+10000000000*(Played*0.999^((10+DaysSinceLastPlayed)/(Played/3+1))-Skip^1.7))/((10+DaysSinceFirstPlayed)/(Played^2+1))"
 	'score = Int((10000000 * (7 + playedTime + (daysSinceLastSkipped / 365)^1.2 -(skipCount*0.98^(otrackLength/60))^1.7)^3 / (10 + daysSinceImported)^0.5) / ((daysSinceLastPlayed / 365) + 1))
 	
-	score = Int((10000000 * (7 + playedTime + (daysSinceLastSkipped*0.5^(otrackLength/60))^1.2 -(skipCount*0.98^(otrackLength/60))^3)^3 / (10 + daysSinceImported)^0.5) / ((daysSinceLastPlayed / 365) + 1))
+	score = Int((10000000 + (playedTime - (skipCount*oTrackLength*0.971^(otrackLength/60)*0.8^(daysSinceLastSkipped / 365)))^3 / (10 + daysSinceImported)^0.5) / ((daysSinceLastPlayed / 365) + 1))
 	
 	If score < 0 Then
         score = 0.0
@@ -287,8 +299,8 @@ Function getScore(objTrack)
 End Function
 
 '#########Start script#########
-objLog.WriteLine "AutoRate (C) 2014 Sven Wilkens | Runtime: " & theNow 
-Wscript.Echo "AutoRate (C) 2014 Sven Wilkens"
+objLog.WriteLine "AutoRate (C) " & Year(theNow) & " Sven Wilkens | Runtime: " & theNow 
+Wscript.Echo "AutoRate (C) " & Year(theNow) & " Sven Wilkens"
 'Init Playlist
 if createPlaylist then
 	set playlist = playlists.ItemByName(playlistName)

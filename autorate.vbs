@@ -1,7 +1,7 @@
 ' ====================
 ' AutoRating
 ' ====================
-' Version 2.0.0.4 - January 2015
+' Version 2.0.0.5 - February 2015
 ' Copyright © Sven Wilkens 2015
 ' https://plus.google.com/u/0/+SvenWilkens
 
@@ -35,6 +35,7 @@
 ' Version 2.0.0.2 - Bugfix
 ' Version 2.0.0.3 - Duration Effect Option
 ' Version 2.0.0.4 - alrogrithm fix
+' Version 2.0.0.5 - alrogrithm fix
 
 '#########Variables#########
 'General
@@ -99,12 +100,13 @@ binLimits = Array(0.33, 0.34, 0.53, 0.54, 0.70, 0.71, 0.84, 0.85, 0.95, 0.96)
 '###############################
 
 'Time
-Dim theNow,atb,offsetMin,theNowUTC
+Dim theNow,atb,offsetMin,theNowUTC, nullDate
 theNow = Now
 atb = "HKEY_LOCAL_MACHINE\System\CurrentControlSet\" &_ 
         "Control\TimeZoneInformation\ActiveTimeBias" 
 offsetMin = objShell.RegRead(atb) 
 theNowUTC = dateadd("n", offsetMin, theNow)
+nullDate = CDate("01/01/1970 00:00:00")
 
 '#########Functions#########
 
@@ -246,11 +248,11 @@ Function getScore(objTrack)
 	trackLength = objTrack.Finish - objTrack.Start '1 '(the finish of theTrack) - (the start of theTrack)
 	lastPlayed = objTrack.PlayedDate
 	if lastPlayed = 0 then 
-		lastPlayed = objTrack.DateAdded
+		lastPlayed = nullDate
 	end if
 	lastSkipped = objTrack.SkippedDate
 	if lastSkipped = 0 then 
-		lastSkipped = theNow
+		lastSkipped = nullDate
 	end if
 	daysSinceLastPlayed = DateDiff("d",lastPlayed,theNow)
 	daysSinceLastSkipped = DateDiff("d",lastSkipped,theNow)

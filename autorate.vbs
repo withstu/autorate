@@ -1,7 +1,7 @@
 ' ====================
 ' AutoRating
 ' ====================
-' Version 2.0.0.5 - February 2015
+' Version 2.0.0.6 - February 2015
 ' Copyright © Sven Wilkens 2015
 ' https://plus.google.com/u/0/+SvenWilkens
 
@@ -34,8 +34,9 @@
 ' Version 2.0.0.1 - new algorithm
 ' Version 2.0.0.2 - Bugfix
 ' Version 2.0.0.3 - Duration Effect Option
-' Version 2.0.0.4 - alrogrithm fix
-' Version 2.0.0.5 - alrogrithm fix
+' Version 2.0.0.4 - algorithm fix
+' Version 2.0.0.5 - algorithm fix
+' Version 2.0.0.6 - algorithm fix
 
 '#########Variables#########
 'General
@@ -100,7 +101,7 @@ binLimits = Array(0.33, 0.34, 0.53, 0.54, 0.70, 0.71, 0.84, 0.85, 0.95, 0.96)
 '###############################
 
 'Time
-Dim theNow,atb,offsetMin,theNowUTC, nullDate
+Dim theNow,atb,offsetMin,theNowUTC,nullDate
 theNow = Now
 atb = "HKEY_LOCAL_MACHINE\System\CurrentControlSet\" &_ 
         "Control\TimeZoneInformation\ActiveTimeBias" 
@@ -291,8 +292,8 @@ Function getScore(objTrack)
 	'Public Const Big_Berny_Formula_5 = "7+OptPlayed-(Skip*0.98^(SongLength/60))"
 	'Public Const BerniPi_Formula_1 = "(500000000000+10000000000*(Played*0.999^((10+DaysSinceLastPlayed)/(Played/3+1))-Skip^1.7))/((10+DaysSinceFirstPlayed)/(Played^2+1))"
 	'score = Int((10000000 * (7 + playedTime + (daysSinceLastSkipped / 365)^1.2 -(skipCount*0.98^(otrackLength/60))^1.7)^3 / (10 + daysSinceImported)^0.5) / ((daysSinceLastPlayed / 365) + 1))
-	
-	score = Int((10000000 + (playedTime - (skipCount*oTrackLength*0.971^(otrackLength/60)*0.8^(daysSinceLastSkipped / 365)))^3 / (10 + daysSinceImported)^0.5) / ((daysSinceLastPlayed / 365) + 1))
+
+	score = Int(((10000000 + (playedTime - (skipCount*oTrackLength*0.971^(otrackLength/60)*0.8^(daysSinceLastSkipped / 365)))^3) / (10 + daysSinceImported)^0.5) / ((daysSinceLastPlayed / 365) + 1))
 	
 	If score < 0 Then
         score = 0.0

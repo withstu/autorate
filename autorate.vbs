@@ -24,7 +24,10 @@
 ' Automatically sets the rating for all tracks in your iTunes library according to how you listen to them.
 ' It also backup the Play and Skip Counts in the Comment field of the mp3 and disable iTunes album rating
 
-' Related scripts: https://code.google.com/p/autorate/
+' Related scripts: 
+' -> https://code.google.com/p/autorate/
+' -> http://www.mediamonkey.com/addons/browse/item/autorateaccurate/
+' -> http://www.giantpygmy.net/gpa/index.php?id=dada-autorating
 
 ' =========
 ' ChangeLog 

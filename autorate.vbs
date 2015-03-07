@@ -1,7 +1,7 @@
 ' ====================
 ' AutoRating
 ' ====================
-' Version 2.0.0.6 - February 2015
+' Version 2.0.0.7 - March 2015
 ' Copyright © Sven Wilkens 2015
 ' https://plus.google.com/u/0/+SvenWilkens
 
@@ -40,6 +40,7 @@
 ' Version 2.0.0.4 - algorithm fix
 ' Version 2.0.0.5 - algorithm fix
 ' Version 2.0.0.6 - algorithm fix
+' VErsion 2.0.0.7 - new algorithm
 
 '#########Variables#########
 'General
@@ -113,6 +114,13 @@ theNowUTC = dateadd("n", offsetMin, theNow)
 nullDate = CDate("01/01/1970 00:00:00")
 
 '#########Functions#########
+
+'left-pad to a string
+Function LPad(s, l, c)
+  Dim n : n = 0
+  If l > Len(s) Then n = l - Len(s)
+  LPad = String(n, c) & s
+End Function
 
 'Get backup values from track comment
 Sub GetCommentValues(C)
@@ -287,7 +295,7 @@ Function getScore(objTrack)
 	Case Else
 		oTrackLength = getDurationDefault(trackLength)
 	End Select
-	playedTime = playCount * oTrackLength
+	playedTime = sqr(playCount) * oTrackLength
 
 	'Public Const Big_Berny_Formula_1 = "(10000000 * (7+OptPlayed-(Skip*0.98^(SongLength/60))^1.7)^3 / (10+DaysSinceFirstPlayed)^0.5) / (1+DaysSinceLastPlayed/365)"
 	'Public Const Big_Berny_Formula_2 = "(10000000 * (7+OptPlayed-(Skip*0.98^(SongLength/60))^1.7)^3 / (10+DaysSinceFirstPlayed)^0.3) / (1+DaysSinceLastPlayed/730)"
@@ -295,11 +303,12 @@ Function getScore(objTrack)
 	'Public Const Big_Berny_Formula_5 = "7+OptPlayed-(Skip*0.98^(SongLength/60))"
 	'Public Const BerniPi_Formula_1 = "(500000000000+10000000000*(Played*0.999^((10+DaysSinceLastPlayed)/(Played/3+1))-Skip^1.7))/((10+DaysSinceFirstPlayed)/(Played^2+1))"
 	'score = Int((10000000 * (7 + playedTime + (daysSinceLastSkipped / 365)^1.2 -(skipCount*0.98^(otrackLength/60))^1.7)^3 / (10 + daysSinceImported)^0.5) / ((daysSinceLastPlayed / 365) + 1))
-
-	score = Int(((10000000 + (playedTime - (skipCount*oTrackLength*0.971^(otrackLength/60)*0.8^(daysSinceLastSkipped / 365)))^3) / (10 + daysSinceImported)^0.5) / ((daysSinceLastPlayed / 365) + 1))
+	'score = Int(10000000 + (((playedTime - (skipCount*oTrackLength*0.971^(otrackLength/60)*0.8^(daysSinceLastSkipped / 365)))^3) / (30 + daysSinceImported)^0.5) / ((daysSinceLastPlayed / 365) + 1))
+	
+	score = (((playedTime - (sqr(skipCount)*oTrackLength*0.9^(oTrackLength/60)*0.6^(daysSinceLastSkipped / 365))) / (30 + daysSinceImported)^0.2)*100) / ((daysSinceLastPlayed^1.2 / 730) + 1)
 	
 	If score < 0 Then
-        score = 0.0
+        'score = 0.0
     End If
 	getScore = score
 End Function
@@ -535,13 +544,15 @@ if sortedScoreList.count() > 0 then
 				'rating set successfully	
 			end if
 			
+			'Save Score to Description
+			'objTrack.Description = ""'LPad(score, 20, "0")
+			
 			'Backup Values to comment
 			if StrComp(objTrack.Comment,commentValue) <> 0 then
 				updateNeeded = true
 				if backupComments then
 					objTrack.Comment = commentValue
 				end if
-
 			end if
 			
 			'Log if changed

@@ -1,7 +1,7 @@
 ' ====================
 ' AutoRating
 ' ====================
-' Version 2.0.0.7 - March 2015
+' Version 2.0.0.8 - May 2015
 ' Copyright © Sven Wilkens 2015
 ' https://plus.google.com/u/0/+SvenWilkens
 
@@ -40,7 +40,8 @@
 ' Version 2.0.0.4 - algorithm fix
 ' Version 2.0.0.5 - algorithm fix
 ' Version 2.0.0.6 - algorithm fix
-' VErsion 2.0.0.7 - new algorithm
+' Version 2.0.0.7 - new algorithm
+' Version 2.0.0.8 - hide output and playlist folder added
 
 '#########Variables#########
 'General
@@ -50,11 +51,11 @@ Dim theTrackCount,numAnalysed,updated,up,down,equal
 'Track
 Dim playCount,skipCount,trackLength,theDateAdded,theOldRating,theRating
 'Calculation
-Dim binLimits,binLimitIndex,minBin,maxBin,binIncrement,bin,minRatingPercent,maxRatingPercent,durationTmp
+Dim binLimits,binLimitIndex,minBin,maxBin,binIncrement,bin,minRatingPercent,maxRatingPercent,durationTmp,topLimitScore
 'Comment
 Dim commentDivider,commentRating,commentPlayCount,commentSkipCount,commentValue,commentDateAdded,commentPlayedDate,commentSkippedDate
 'Configuration
-Dim minRating,maxRating,rateUnratedTracksOnly,ratingMemory,useHalfStarForItemsWithMoreSkipsThanPlays,wholeStarRatings,restoreNeeded,updateNeeded,backupComments,createPlaylist,playlistName,simulate,durationEffect
+Dim minRating,maxRating,rateUnratedTracksOnly,ratingMemory,useHalfStarForItemsWithMoreSkipsThanPlays,wholeStarRatings,restoreNeeded,updateNeeded,backupComments,createPlaylist,playlistName,simulate,durationEffect,topplaylist,topcount,showOutput
 
 '#########Logfile#########
 Dim strPath,strFolder
@@ -82,6 +83,7 @@ set colTracks = sourcePlaylist.Tracks 'use single playlist
 '###############################
 '#########Configuration#########
 '###############################
+showOutput = false 'default:false
 restoreComments = true 'default:true
 backupComments = true 'default:true
 simulate = false 'default:false
@@ -92,6 +94,9 @@ durationEffect = "megaweak" 'default:default;options: full,strong,moderate,defau
 'Playlist
 createPlaylist = true 'default:true
 playlistName = "LastAutoRated"
+'Top Track Playlist
+topplaylistName = "Top1000"
+topcount = 1000
 'Rating
 ratingMemory = 0.0 'Percentage of how much of the old rating should take into account
 minRating = 1.0
@@ -318,11 +323,24 @@ objLog.WriteLine "AutoRate (C) " & Year(theNow) & " Sven Wilkens | Runtime: " & 
 Wscript.Echo "AutoRate (C) " & Year(theNow) & " Sven Wilkens"
 'Init Playlist
 if createPlaylist then
-	set playlist = playlists.ItemByName(playlistName)
+	
+	set playlistfolder = playlists.ItemByName("AutoRate")
+	if playlistfolder is Nothing then
+		Set playlistfolder = objApp.CreateFolder("AutoRate")
+	end if
+	
+	set playlist = playlistfolder.Source.Playlists.ItemByName(playlistName)
 	if NOT playlist is Nothing then
 		playlist.Delete
 	end if
-	set playlist = objApp.CreatePlaylist(playlistName)
+	set playlist = playlistfolder.CreatePlaylist(playlistName)
+	
+	'topplaylist
+	set topplaylist = playlistfolder.Source.Playlists.ItemByName(topplaylistName)
+	if NOT topplaylist is Nothing then
+		topplaylist.Delete
+	end if
+	set topplaylist = playlistfolder.CreatePlaylist(topplaylistName)
 end if
 
 'Initialise statistical analysis temp values
@@ -340,10 +358,12 @@ updated = 0
 if restoreComments then
 	objLog.WriteLine "----------Restore from comments----------"
 	Wscript.Echo "----------Restore from comments----------"
-	Wscript.Stdout.Write "Restore counts from comments if needed: ["
-	WScript.Stdout.Write numTracksToRate
-	WScript.Stdout.Write "/"
-	Wscript.Stdout.Write chr(32) & chr(32) & chr(32) & chr(32) & chr(32) & chr(32) & chr(32) & chr(32) & chr(32) & chr(32)
+	if showOutput then
+		Wscript.Stdout.Write "Restore counts from comments if needed: ["
+		WScript.Stdout.Write numTracksToRate
+		WScript.Stdout.Write "/"
+		Wscript.Stdout.Write chr(32) & chr(32) & chr(32) & chr(32) & chr(32) & chr(32) & chr(32) & chr(32) & chr(32) & chr(32)
+	end if
 	For Each objTrack in colTracks
 		restoreNeeded = false
 		GetCommentValues(objTrack.Comment)
@@ -381,15 +401,18 @@ if restoreComments then
 			objLog.WriteLine chr(9) & "Date added: " & chr(9) & objTrack.DateAdded
 			updated = updated + 1
 		end if
-		
-		WScript.Stdout.Write chr(8) & chr(8) & chr(8) & chr(8) & chr(8) & chr(8) & chr(8) & chr(8) & chr(8) & chr(8)
-		Wscript.Stdout.Write theTrackCount
-		Wscript.Stdout.Write "]"
-		For i = 1 to (9 - Len(theTrackCount))
-			Wscript.Stdout.Write chr(32)
-		next
+		if showOutput then
+			WScript.Stdout.Write chr(8) & chr(8) & chr(8) & chr(8) & chr(8) & chr(8) & chr(8) & chr(8) & chr(8) & chr(8)
+			Wscript.Stdout.Write theTrackCount
+			Wscript.Stdout.Write "]"
+			For i = 1 to (9 - Len(theTrackCount))
+				Wscript.Stdout.Write chr(32)
+			next
+		end if
 	Next
-	Wscript.Stdout.WriteBlankLines(1)
+	if showOutput then
+		Wscript.Stdout.WriteBlankLines(1)
+	end if
 	WScript.Echo updated & " Files restored from comment."
 
 	objLog.WriteLine
@@ -404,10 +427,12 @@ Wscript.Echo "----------Analyse tracks----------"
 updated = 0
 theTrackCount = 0
 numAnalysed = 0
-Wscript.Stdout.Write "Create statistics: ["
-WScript.Stdout.Write numTracksToRate
-WScript.Stdout.Write "/"
-Wscript.Stdout.Write chr(32) & chr(32) & chr(32) & chr(32) & chr(32) & chr(32) & chr(32) & chr(32) & chr(32) & chr(32)
+if showOutput then
+	Wscript.Stdout.Write "Create statistics: ["
+	WScript.Stdout.Write numTracksToRate
+	WScript.Stdout.Write "/"
+	Wscript.Stdout.Write chr(32) & chr(32) & chr(32) & chr(32) & chr(32) & chr(32) & chr(32) & chr(32) & chr(32) & chr(32)
+end if
 
 For Each objTrack in colTracks
 	theTrackCount = theTrackCount + 1
@@ -415,15 +440,19 @@ For Each objTrack in colTracks
 	sortedScoreList.Add score
 	numAnalysed = numAnalysed + 1
 	
-	WScript.Stdout.Write chr(8) & chr(8) & chr(8) & chr(8) & chr(8) & chr(8) & chr(8) & chr(8) & chr(8) & chr(8)
-	Wscript.Stdout.Write theTrackCount
-	Wscript.Stdout.Write "]"
-	For i = 1 to (9 - Len(theTrackCount))
-		Wscript.Stdout.Write chr(32)
-	next
+	if showOutput then
+		WScript.Stdout.Write chr(8) & chr(8) & chr(8) & chr(8) & chr(8) & chr(8) & chr(8) & chr(8) & chr(8) & chr(8)
+		Wscript.Stdout.Write theTrackCount
+		Wscript.Stdout.Write "]"
+		For i = 1 to (9 - Len(theTrackCount))
+			Wscript.Stdout.Write chr(32)
+		next
+	end if
 Next
 
-Wscript.Stdout.WriteBlankLines(1)
+if showOutput then
+	Wscript.Stdout.WriteBlankLines(1)
+end if
 
 if sortedScoreList.count() > 0 then
 	'sort the lists so we can find the item at lower and upper percentiles and bin the values in a histogram.
@@ -451,6 +480,9 @@ if sortedScoreList.count() > 0 then
 		Wscript.Echo "   " & FormatNumber(ratingBorder,1) & " | < " & scoreLimit
 		ratingBorder = ratingBorder + 0.5
 	Next
+	
+	'Get Score Limit for best x tracks
+	topLimitScore = sortedScoreList(numAnalysed - (topcount + 1))
 
 	'Left analysis loop
 	minRatingPercent = minRating * 20
@@ -483,10 +515,12 @@ if sortedScoreList.count() > 0 then
 		binIncrement = 1
 	end if
 	
-	Wscript.Stdout.Write "Assign Rating: ["
-	WScript.Stdout.Write numTracksToRate
-	WScript.Stdout.Write "/"
-	Wscript.Stdout.Write chr(32) & chr(32) & chr(32) & chr(32) & chr(32) & chr(32) & chr(32) & chr(32) & chr(32) & chr(32)			
+	if showOutput then
+		Wscript.Stdout.Write "Assign Rating: ["
+		WScript.Stdout.Write numTracksToRate
+		WScript.Stdout.Write "/"
+		Wscript.Stdout.Write chr(32) & chr(32) & chr(32) & chr(32) & chr(32) & chr(32) & chr(32) & chr(32) & chr(32) & chr(32)		
+	end if
 	For Each objTrack in colTracks
 		updateNeeded = false
 		theTrackCount = theTrackCount + 1
@@ -525,12 +559,14 @@ if sortedScoreList.count() > 0 then
 
 			'Save to track
 			'Wscript.Echo theTrackCount & " | Name: " & objTrack.Name & " | Rating: " & theRating
-			WScript.Stdout.Write chr(8) & chr(8) & chr(8) & chr(8) & chr(8) & chr(8) & chr(8) & chr(8) & chr(8) & chr(8)
-			Wscript.Stdout.Write theTrackCount
-			Wscript.Stdout.Write "]"
-			For i = 1 to (9 - Len(theTrackCount))
-				Wscript.Stdout.Write chr(32)
-			next
+			if showOutput then
+				WScript.Stdout.Write chr(8) & chr(8) & chr(8) & chr(8) & chr(8) & chr(8) & chr(8) & chr(8) & chr(8) & chr(8)
+				Wscript.Stdout.Write theTrackCount
+				Wscript.Stdout.Write "]"
+				For i = 1 to (9 - Len(theTrackCount))
+					Wscript.Stdout.Write chr(32)
+				next
+			end if
 			
 			commentValue = "PlayCount#" & objTrack.PlayedCount & ",SkipCount#" & objTrack.SkippedCount & ",Rating#" & theRating & ",AddedDate#" & objTrack.DateAdded & ",PlayedDate#" & objTrack.PlayedDate & ",SkippedDate#" & objTrack.SkippedDate
 			
@@ -540,8 +576,15 @@ if sortedScoreList.count() > 0 then
 				updateNeeded = true
 				if createPlaylist then
 					playlist.AddTrack(objTrack)
+					if score > topLimitScore then 
+						topplaylist.AddTrack(objTrack)
+					end if
 				end if
 				'rating set successfully	
+			end if
+			
+			if createPlaylist And score > topLimitScore then
+				topplaylist.AddTrack(objTrack)
 			end if
 			
 			'Save Score to Description
@@ -591,7 +634,9 @@ if sortedScoreList.count() > 0 then
 			end if
 		end if
 	Next
-	Wscript.Stdout.WriteBlankLines(1)				
+	if showOutput then
+		Wscript.Stdout.WriteBlankLines(1)	
+	end if
 	WScript.Echo updated & " File ratings updated."
 	
 	objLog.WriteLine
@@ -603,7 +648,7 @@ if sortedScoreList.count() > 0 then
 	objLog.WriteLine "#"
 	objLog.WriteLine
 	WScript.Echo "Done!"
-	objShell.run "notepad.exe " & strFolder & "\autorate.log"
+	'objShell.run "notepad.exe " & strFolder & "\autorate.log"
 else
 	WScript.Echo "Script aborded because no tracks are available."
 	objLog.WriteLine "Script aborded because no tracks are available."

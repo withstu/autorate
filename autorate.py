@@ -350,7 +350,7 @@ def main():
                 objTrack.PlayedCount = commentValues['commentPlayCount']
                 track['PlayedCount'] = commentValues['commentPlayCount']
 
-                if commentValues['commentPlayedDate'] < nullDate:
+                if commentValues['commentPlayedDate'] <= nullDate:
                     objTrack.PlayedDate = 0
                 else:
                     objTrack.PlayedDate = tz.localize(commentValues['commentPlayedDate'])

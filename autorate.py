@@ -1,12 +1,13 @@
 __author__ = 'Sven'
 
-import datetime
+from datetime import datetime
 import math
 import win32com.client
 import logging
 import pylast
 import operator
 import timeit
+from tzlocal import get_localzone
 import os
 
 #Switch to script directory
@@ -54,8 +55,10 @@ binLimits = [0.33, 0.34, 0.53, 0.54, 0.70, 0.71, 0.84, 0.85, 0.95, 0.96]
 ################################
 ################################
 #Time
-theNow = datetime.datetime.now()
-nullDate = datetime.datetime(1970, 1, 1, 0, 0)
+theNow = datetime.now()
+nullDate = datetime(1970, 1, 1, 0, 0)
+tz = get_localzone()
+
 
 ##########Functions#########
 
@@ -80,6 +83,7 @@ def getItunesPlaylists():
     return playlists
 
 def getLastFmScore(objTrack):
+    #Test with LastFM API
     lfm = pylast.LastFMNetwork(api_key=API_KEY, api_secret=API_SECRET)
     track = lfm.get_track(objTrack.Artist, objTrack.Name)
     playcount = track.get_playcount()
@@ -117,11 +121,20 @@ def GetCommentValues(track):
             elif r[0] == "SkipCount":
                 commentValues['commentSkipCount'] = int(r[1])
             elif r[0] == "AddedDate":
-                commentValues['commentDateAdded'] = r[1]
+                try:
+                    commentValues['commentDateAdded'] = datetime.strptime(r[1], "%Y-%m-%d %H:%M:%S")
+                except:
+                    commentValues['commentDateAdded'] = nullDate
             elif r[0] == "PlayedDate":
-                commentValues['commentPlayedDate'] = r[1]
+                try:
+                    commentValues['commentPlayedDate'] = datetime.strptime(r[1], "%Y-%m-%d %H:%M:%S")
+                except:
+                    commentValues['commentPlayedDate'] = nullDate
             elif r[0] == "SkippedDate":
-                commentValues['commentSkippedDate'] = r[1]
+                try:
+                    commentValues['commentSkippedDate'] = datetime.strptime(r[1], "%Y-%m-%d %H:%M:%S")
+                except:
+                    commentValues['commentSkippedDate'] = nullDate
 
     return commentValues
 
@@ -336,13 +349,21 @@ def main():
             if track['PlayedCount'] < commentValues['commentPlayCount']:
                 objTrack.PlayedCount = commentValues['commentPlayCount']
                 track['PlayedCount'] = commentValues['commentPlayCount']
-                objTrack.PlayedDate = commentValues['commentPlayedDate']
+
+                if commentValues['commentPlayedDate'] < nullDate:
+                    objTrack.PlayedDate = 0
+                else:
+                    objTrack.PlayedDate = tz.localize(commentValues['commentPlayedDate'])
                 track['PlayedDate'] = commentValues['commentPlayedDate']
                 restoreNeeded = True
             if track['SkippedCount'] < commentValues['commentSkipCount']:
                 objTrack.SkippedCount = commentValues['commentSkipCount']
                 track['SkippedCount'] = commentValues['commentSkipCount']
-                objTrack.SkippedDate = commentValues['commentSkippedDate']
+
+                if commentValues['commentSkippedDate'] <= nullDate:
+                    objTrack.SkippedDate = 0
+                else:
+                    objTrack.SkippedDate = tz.localize(commentValues['commentSkippedDate'])
                 track['SkippedDate'] = commentValues['commentSkippedDate']
                 restoreNeeded = True
 
@@ -372,6 +393,10 @@ def main():
                 logging.debug(chr(9) + "Date added: " + chr(9) + str(track['DateAdded']))
                 restored += 1
 
+        if track['PlayedDate'] < nullDate:
+            track['PlayedDate'] = nullDate
+        if track['SkippedDate'] < nullDate:
+            track['SkippedDate'] = nullDate
         score = getScore(track)
         if isinstance(score, complex):
             msg = "Score is Complex - Title: " + track['Name'] + ", Artist: " + track['Artist']
@@ -458,6 +483,10 @@ def main():
                 if theRating == 0:
                     theRating = 1
 
+                if track['PlayedDate'] <= nullDate:
+                    track['PlayedDate'] = "00:00:00"
+                if track['SkippedDate'] <= nullDate:
+                    track['SkippedDate'] = "00:00:00"
                 commentValue = "PlayCount#" + str(track['PlayedCount']) \
                                + ",SkipCount#"\
                                + str(track['SkippedCount'])\

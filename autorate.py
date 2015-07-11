@@ -1,8 +1,6 @@
 __author__ = 'Sven'
 
 import datetime
-from datetime import timezone
-import pytz
 import math
 import win32com.client
 import logging
@@ -28,7 +26,6 @@ logging.basicConfig(filename='autorate-py.log', filemode='w', level=logging.INFO
 API_KEY = ""
 API_SECRET = ""
 
-showOutput = False #default:false
 restoreComments = True #default:true
 backupComments = True #default:true
 simulate = False #default:false
@@ -83,7 +80,6 @@ def getItunesPlaylists():
     return playlists
 
 def getLastFmScore(objTrack):
-    #Test with LastFM API
     lfm = pylast.LastFMNetwork(api_key=API_KEY, api_secret=API_SECRET)
     track = lfm.get_track(objTrack.Artist, objTrack.Name)
     playcount = track.get_playcount()
@@ -350,10 +346,10 @@ def main():
                 track['SkippedDate'] = commentValues['commentSkippedDate']
                 restoreNeeded = True
 
-            if createPlaylist and track['PlayedCount'] < commentValues['commentPlayCount']:
+            if createPlaylist and track['PlayedCount'] > commentValues['commentPlayCount']:
                 playCounterPlaylist.AddTrack(objTrack)
 
-            if createPlaylist and track['SkippedCount'] < commentValues['commentSkipCount']:
+            if createPlaylist and track['SkippedCount'] > commentValues['commentSkipCount']:
                 skipCounterPlaylist.AddTrack(objTrack)
 
             #Date Added is read only
@@ -486,7 +482,7 @@ def main():
                     topplaylistcount += 1
 
                 #Backup Values to comment
-                if objTrack.Comment == commentValue:
+                if objTrack.Comment != commentValue:
                     updateNeeded = True
                     if backupComments:
                         objTrack.Comment = commentValue

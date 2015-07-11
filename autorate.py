@@ -483,10 +483,6 @@ def main():
                 if theRating == 0:
                     theRating = 1
 
-                if track['PlayedDate'] <= nullDate:
-                    track['PlayedDate'] = "00:00:00"
-                if track['SkippedDate'] <= nullDate:
-                    track['SkippedDate'] = "00:00:00"
                 commentValue = "PlayCount#" + str(track['PlayedCount']) \
                                + ",SkipCount#"\
                                + str(track['SkippedCount'])\

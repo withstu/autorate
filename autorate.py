@@ -9,6 +9,7 @@ import operator
 import timeit
 from tzlocal import get_localzone
 import os
+import ballontip as bt
 
 #Switch to script directory
 abspath = os.path.abspath(__file__)
@@ -26,6 +27,9 @@ logging.basicConfig(filename='autorate-py.log', filemode='w', level=logging.INFO
 ################################
 API_KEY = ""
 API_SECRET = ""
+
+musicPlaylist = "MusicOnly"
+#musicPlaylist = "Test"
 
 restoreComments = True #default:true
 backupComments = True #default:true
@@ -279,6 +283,7 @@ def getScore(track):
 def main():
     start = timeit.default_timer()
     logging.info("Autorate (C) " + str(theNow.year) + " Sven Wilkens | Runtime: " + str(theNow))
+    bt.balloon_tip("AutoRate","Rate iTunes tracks now...")
     #Init Itunes
     objApp = getItunes()
     playlists = getItunesPlaylists()
@@ -312,8 +317,7 @@ def main():
         skipCounterPlaylist = playlistfolder.CreatePlaylist(skipCounterPlaylistName)
 
     #Init temp values
-    tracks = getItunesPlaylist("MusicOnly")
-    #tracks = getItunesPlaylist("Testplaylist")
+    tracks = getItunesPlaylist(musicPlaylist)
     sortedFrequencyList, sortedCountList, sortedScoreList, scoreList = [], [], [], []
     up = 0
     down = 0
@@ -541,7 +545,7 @@ def main():
         logging.info(str(up) + " File ratings goes up.")
         logging.info(str(down) + " File ratings goes down.")
         logging.info(str(equal) + " File ratings keeps equal.")
-
+        bt.balloon_tip("AutoRate", str(updated) + " File ratings updated.")
         logging.info("Done!")
 
     else:

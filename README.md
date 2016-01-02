@@ -13,7 +13,7 @@ This is particularly useful for automatically creating playlists, or transferrin
 
 Install instruction
 ==================
-Create a smart playlist with the name "MusicOnly", which only contains music.
+Create a smart playlist with the name "MusicOnly", which only contains music on your computer ("Media Kind" is "Music" and "Location" is "on this computer").
 Double click autorate.cmd
 
 You can also configure the script to run every day/week when you use the windows task scheduler.

@@ -14,7 +14,7 @@ This is particularly useful for automatically creating playlists, or transferrin
 Install instruction
 ==================
 Create a smart playlist with the name "MusicOnly", which only contains music on your computer ("Media Kind" is "Music" and "Location" is "on this computer").
-Double click autorate.cmd
+Double click autorate.cmd. If you prefer python (script runs faster) just call autorate.py (C:\Python34\pythonw.exe C:\autorate.py).
 
 You can also configure the script to run every day/week when you use the windows task scheduler.
 
